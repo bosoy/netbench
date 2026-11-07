@@ -1,0 +1,158 @@
+============= netbench run =============
+2026-11-06T19:30:24.878Z
+v24.21.0
+args: uplink= a2s=127.0.0.1:2302 cal_players=40 cal_ai_cap=150
+---- 1. line + live server on 127.0.0.1:2302 ----
+note: the upload test saturates the line for ~8 seconds
+
+=== HARDWARE ====================================================
+machine       Micro-Star International Co., Ltd. MS-7E06  |  Intel(R) Core(TM) i5-14600KF
+cpu           14 cores / 20 threads, 3500 MHz, L3 24 MB
+single core   297 M iter/s  (relative index)
+ram           31.8 GB  (node sees 31.8 GB)
+gpu           AMD Radeon RX 9070 XT
+os            Майкрософт Windows 11 IoT Корпоративная build 26300
+power plan    Высокая производительность
+nics          Intel(R) Wi-Fi 6E AX211 160MHz@1201000000
+source        powershell
+
+=== LINE ========================================================
+dns           7.2 ms
+1.1.1.1:443                   min 0.2  p50 0.6  p90 3.9  max 13.6 ms  jitter 1.2  loss 0%
+8.8.8.8:53                    min 0.4  p50 0.5  p90 1.9  max 2.9 ms  jitter 0.2  loss 0%
+download      196.7 Mbit/s  (175.00 MB in 7.1 s of transfer, 7 x 25.00 MB, 0.6 s idle)
+upload        96.0 Mbit/s  (96.00 MB in 8.0 s, 24 posts)
+
+=== MODEL INPUT ==================================================
+players       40  (--players)
+uplink        96 Mbit/s  (measured upload)
+view dist     3000 m
+world         Heavy, 576 kbit/s per player
+priority      Smooth
+need          23.0 Mbit/s   usable (70% up): 67.2 Mbit/s
+
+=== basic.cfg ===================================================
+MaxMsgSend              128               Enough packets for 2.5 Mbit/s per player at 20 server FPS, x2 headroom.
+MinBandwidth            20.0 Mbit/s       40 players x 576 kbit/s (Heavy, Smooth).
+MaxBandwidth            100.0 Mbit/s      Just above your 96.0 Mbit/s line: BI defines this key as the bandwidth the server will never have, so under the line it would clamp itself. Planning still uses 70 % (67.2 Mbit/s).
+MinErrorToSend          0.001             Animations reach about 6.3 km, matching your 3.0 km view distance (Smooth).
+MinErrorToSendNear      0.01              BI default.
+MaxSizeGuaranteed       512               BI default. Only raise it if the server is the bottleneck; big packets get lost whole on a bad client line.
+MaxSizeNonguaranteed    256               BI default. BI: raising it buys bandwidth but adds position lag; over 1300 bytes they warn of negative effects.
+MaxCustomFileSize       0                 0 = never kick for custom face/sound. BI default 1024 bytes does kick those players.
+anim reach              6.3 km  (zoomed whole map)
+
+=== ALERTS ====================================================
+! Scene class and priority chosen by --auto: Heavy + Smooth is the most comfortable setting that still fits in 96 Mbit/s upload.
+! Active NIC looks wireless: a dedicated server on wi-fi will show as jitter and loss, not as a bandwidth number.
+
+=== LIVE SERVERS ==============================================
+127.0.0.1:2302          EVO FFA RED                               12/40 players, map Altis, from info, 2 ms
+
+=== FIT MATRIX (твоя модель, uplink 96 Mbit/s, 40 slots) ====
+scene + priority          need          cost/player   anim reach   slots cap fits
+Quiet + Smooth            7.7 Mbit/s    192 kbit/s    6.3 km       337       yes
+Quiet + Balanced          5.1 Mbit/s    128 kbit/s    3.7 km       337       yes
+Quiet + Save traffic      3.6 Mbit/s    90 kbit/s     3.2 km       337       yes
+Busy + Smooth             15.4 Mbit/s   384 kbit/s    6.3 km       175       yes
+Busy + Balanced           10.2 Mbit/s   256 kbit/s    3.7 km       262       yes
+Busy + Save traffic       7.2 Mbit/s    179 kbit/s    3.2 km       337       yes
+Heavy + Smooth            23.0 Mbit/s   576 kbit/s    6.3 km       116       yes
+Heavy + Balanced          15.4 Mbit/s   384 kbit/s    3.7 km       175       yes
+Heavy + Save traffic      10.8 Mbit/s   269 kbit/s    3.2 km       250       yes
+
+best that fits: Heavy + Smooth  (576 kbit/s/player, cap 116 slots)
+  -> applied to basic.cfg by --auto
+
+=== CPU / RAM ====================================================
+  BI does not publish players-per-core or RAM-per-player; the wiki only
+  says a headless client takes the AI calculation off the server instance.
+reference     40 slots, ffa_evo_allunitmax 150 at 294 M iter/s, 32 GB RAM  (2026-11-06, Micro-Star International Co., Ltd. MS-7E06)
+this box      same single-core class as the reference, so the same ~40 slots and AI cap ~151  (index ratio 1.01)
+
+written: C:\Users\Dimon\Documents\Qoder\2026-11-05\e2848177\netbench\out\basic.cfg
+written: C:\Users\Dimon\Documents\Qoder\2026-11-05\e2848177\netbench\out\report.json
+put basic.cfg next to the server exe and start it with -cfg=basic.cfg
+netbench: 2 line(s) show what windows itself writes in russian (os, power plan): printed here in latin letters, the original spelling is in the log and in out\report.json
+note: measured upload 96 Mbit/s reused in steps 1b and 3
+---- 2. basic.cfg written by step 1 ----
+note: the russian comments below can draw as garbage on this console, the file itself is fine - open it in Notepad
+// basic.cfg: 40 players, 96 Mbit/s upload, Heavy, Smooth
+// Start the server with -cfg=basic.cfg (read once at start).
+
+MaxMsgSend = 128;               // per player per frame
+MinBandwidth = "20Mbit/s";      // bit/s total, floor
+MaxBandwidth = "100Mbit/s";     // bit/s total, ceiling
+MinErrorToSend = 0.001;         // higher = less far traffic
+MinErrorToSendNear = 0.01;      // floor at any distance
+MaxSizeGuaranteed = 512;        // bytes, reliable
+MaxSizeNonguaranteed = 256;     // bytes, positions
+MaxCustomFileSize = 0;          // bytes, face/sound limit
+---- 3. calibration ----
+
+=== HARDWARE ====================================================
+machine       Micro-Star International Co., Ltd. MS-7E06  |  Intel(R) Core(TM) i5-14600KF
+cpu           14 cores / 20 threads, 3500 MHz, L3 24 MB
+single core   297 M iter/s  (relative index)
+ram           31.8 GB  (node sees 31.8 GB)
+gpu           AMD Radeon RX 9070 XT
+os            Майкрософт Windows 11 IoT Корпоративная build 26300
+power plan    Высокая производительность
+nics          Intel(R) Wi-Fi 6E AX211 160MHz@1141000000
+source        powershell
+
+=== MODEL INPUT ==================================================
+players       40  (--players)
+uplink        96 Mbit/s  (--uplink)
+view dist     3000 m
+world         Heavy, 576 kbit/s per player
+priority      Smooth
+need          23.0 Mbit/s   usable (70% up): 67.2 Mbit/s
+
+=== basic.cfg ===================================================
+MaxMsgSend              128               Enough packets for 2.5 Mbit/s per player at 20 server FPS, x2 headroom.
+MinBandwidth            20.0 Mbit/s       40 players x 576 kbit/s (Heavy, Smooth).
+MaxBandwidth            100.0 Mbit/s      Just above your 96.0 Mbit/s line: BI defines this key as the bandwidth the server will never have, so under the line it would clamp itself. Planning still uses 70 % (67.2 Mbit/s).
+MinErrorToSend          0.001             Animations reach about 6.3 km, matching your 3.0 km view distance (Smooth).
+MinErrorToSendNear      0.01              BI default.
+MaxSizeGuaranteed       512               BI default. Only raise it if the server is the bottleneck; big packets get lost whole on a bad client line.
+MaxSizeNonguaranteed    256               BI default. BI: raising it buys bandwidth but adds position lag; over 1300 bytes they warn of negative effects.
+MaxCustomFileSize       0                 0 = never kick for custom face/sound. BI default 1024 bytes does kick those players.
+anim reach              6.3 km  (zoomed whole map)
+
+=== ALERTS ====================================================
+! Scene class and priority chosen by --auto: Heavy + Smooth is the most comfortable setting that still fits in 96 Mbit/s upload.
+! Active NIC looks wireless: a dedicated server on wi-fi will show as jitter and loss, not as a bandwidth number.
+
+=== LIVE SERVERS ==============================================
+  (no --a2s given: run it against a live server to take its slot count and map)
+
+=== FIT MATRIX (твоя модель, uplink 96 Mbit/s, 40 slots) ====
+scene + priority          need          cost/player   anim reach   slots cap fits
+Quiet + Smooth            7.7 Mbit/s    192 kbit/s    6.3 km       337       yes
+Quiet + Balanced          5.1 Mbit/s    128 kbit/s    3.7 km       337       yes
+Quiet + Save traffic      3.6 Mbit/s    90 kbit/s     3.2 km       337       yes
+Busy + Smooth             15.4 Mbit/s   384 kbit/s    6.3 km       175       yes
+Busy + Balanced           10.2 Mbit/s   256 kbit/s    3.7 km       262       yes
+Busy + Save traffic       7.2 Mbit/s    179 kbit/s    3.2 km       337       yes
+Heavy + Smooth            23.0 Mbit/s   576 kbit/s    6.3 km       116       yes
+Heavy + Balanced          15.4 Mbit/s   384 kbit/s    3.7 km       175       yes
+Heavy + Save traffic      10.8 Mbit/s   269 kbit/s    3.2 km       250       yes
+
+best that fits: Heavy + Smooth  (576 kbit/s/player, cap 116 slots)
+  -> applied to basic.cfg by --auto
+
+=== CPU / RAM ====================================================
+  BI does not publish players-per-core or RAM-per-player; the wiki only
+  says a headless client takes the AI calculation off the server instance.
+reference     40 slots, ffa_evo_allunitmax 150 at 297 M iter/s, 32 GB RAM  (2026-11-06, Micro-Star International Co., Ltd. MS-7E06)
+
+calibration written: C:\Users\Dimon\Documents\Qoder\2026-11-05\e2848177\netbench\out\calibration.json
+
+written: C:\Users\Dimon\Documents\Qoder\2026-11-05\e2848177\netbench\out\basic.cfg
+written: C:\Users\Dimon\Documents\Qoder\2026-11-05\e2848177\netbench\out\report.json
+put basic.cfg next to the server exe and start it with -cfg=basic.cfg
+netbench: 2 line(s) show what windows itself writes in russian (os, power plan): printed here in latin letters, the original spelling is in the log and in out\report.json
+============= end =============
+send back: netbench.log, out\report.json, out\basic.cfg
+the log file is utf-8, Notepad reads it as is
